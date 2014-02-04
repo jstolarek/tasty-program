@@ -1,5 +1,29 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
+-- | This module provides a function that tests whether a program can
+-- be run successfully. For example if you have 'foo.hs' source file:
+--
+-- > module Foo where
+-- >
+-- > foo :: Int
+-- > foo = 5
+--
+-- you can test whether GHC can compile it:
+--
+-- > module Main (
+-- >   main
+-- >  ) where
+-- >
+-- > import Test.Tasty
+-- > import Test.Tasty.Program
+-- >
+-- > main :: IO ()
+-- > main = defaultMain $ testGroup "Compilation with GHC" $ [
+-- >     testProgram "Foo" "ghc" ["-fforce-recomp", "foo.hs"] Nothing
+-- >   ]
+--
+-- Program's output and error streams are ignored.
+
 module Test.Tasty.Program (
    testProgram
  ) where
@@ -14,7 +38,8 @@ import Test.Tasty.Providers ( IsTest (..), Result(..), TestName,
 data TestProgram = TestProgram String [String] (Maybe FilePath)
      deriving (Typeable)
 
--- | Create test that will run a program with given options
+-- | Create test that runs a program with given options. Test succeeds
+-- if program terminates successfully.
 testProgram :: TestName        -- ^ Test name
             -> String          -- ^ Program name
             -> [String]        -- ^ Program options
