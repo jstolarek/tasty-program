@@ -28,12 +28,12 @@ module Test.Tasty.Program (
    testProgram
  ) where
 
-import Data.Typeable        ( Typeable                              )
-import System.Directory     ( findExecutable                        )
-import System.Exit          ( ExitCode(..)                          )
-import System.Process       ( runInteractiveProcess, waitForProcess )
-import Test.Tasty.Providers ( IsTest (..), Result(..), TestName,
-                              TestTree, singleTest                  )
+import Data.Typeable        ( Typeable                                 )
+import System.Directory     ( findExecutable                           )
+import System.Exit          ( ExitCode(..)                             )
+import System.Process       ( runInteractiveProcess, waitForProcess    )
+import Test.Tasty.Providers ( IsTest (..), Result, TestName, TestTree,
+                              singleTest, testPassed, testFailed       )
 
 data TestProgram = TestProgram String [String] (Maybe FilePath)
      deriving (Typeable)
@@ -72,18 +72,14 @@ runProgram program opts workingDir = do
 
 -- | Indicates successful test
 success :: Result
-success = Result True ""
+success = testPassed ""
 
 -- | Indicates that program does not exist in the path
 execNotFoundFailure :: String -> Result
-execNotFoundFailure file = Result
-  { resultSuccessful  = False
-  , resultDescription = "Cannot locate program " ++ file ++ " in the PATH"
-  }
+execNotFoundFailure file =
+  testFailed $ "Cannot locate program " ++ file ++ " in the PATH"
 
 -- | Indicates that program failed with an error code
 exitFailure :: String -> Int -> Result
-exitFailure file code = Result
-  { resultSuccessful  = False
-  , resultDescription = "Program " ++ file ++ " failed with code " ++ show code
-  }
+exitFailure file code =
+  testFailed $ "Program " ++ file ++ " failed with code " ++ show code
