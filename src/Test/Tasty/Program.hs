@@ -26,14 +26,19 @@
 
 module Test.Tasty.Program (
    testProgram
+ , CatchStderr
  ) where
 
 import Data.Typeable        ( Typeable                                 )
+import Data.Proxy           ( Proxy (..)                               )
 import System.Directory     ( findExecutable                           )
 import System.Exit          ( ExitCode(..)                             )
 import System.Process       ( runInteractiveProcess, waitForProcess    )
+import System.IO            ( hGetContents                             )
 import Test.Tasty.Providers ( IsTest (..), Result, TestName, TestTree,
                               singleTest, testPassed, testFailed       )
+import Test.Tasty.Options   ( IsOption (..), OptionDescription(..),
+                              safeRead, lookupOption )
 
 data TestProgram = TestProgram String [String] (Maybe FilePath)
      deriving (Typeable)
@@ -49,26 +54,43 @@ testProgram testName program opts workingDir =
     singleTest testName (TestProgram program opts workingDir)
 
 instance IsTest TestProgram where
-  run _ (TestProgram program opts workingDir) _ = do
+  run opts (TestProgram program args workingDir) _ = do
     execFound <- findExecutable program
+
+    let CatchStderr catchStderr = lookupOption opts
+
     case execFound of
       Nothing       -> return $ execNotFoundFailure program
-      Just progPath -> runProgram progPath opts workingDir
+      Just progPath -> runProgram progPath args workingDir catchStderr
 
-  testOptions = return []
+  testOptions = return [Option (Proxy :: Proxy CatchStderr)]
+
+newtype CatchStderr = CatchStderr Bool deriving (Show, Typeable)
+
+instance IsOption CatchStderr where
+  defaultValue = CatchStderr False
+  parseValue   = fmap CatchStderr . safeRead
+  optionName   = return "catch-stderr"
+  optionHelp   = return "Catch standart error of programs"
 
 -- | Run a program with given options and optional working directory.
 -- Return success if program exits with success code.
 runProgram :: String          -- ^ Program name
            -> [String]        -- ^ Program options
            -> Maybe FilePath  -- ^ Optional working directory
+           -> Bool            -- ^ Whether to print stderr on error
            -> IO Result
-runProgram program opts workingDir = do
-  (_, _, _, pid) <- runInteractiveProcess program opts workingDir Nothing
-  ecode <- waitForProcess pid
+runProgram program args workingDir catchStderr = do
+  (_, _, stderrH, pid) <- runInteractiveProcess program args workingDir Nothing
+
+  ecode  <- waitForProcess pid
+  stderr <- hGetContents stderrH
+
   case ecode of
     ExitSuccess      -> return success
-    ExitFailure code -> return $ exitFailure program code
+    ExitFailure code -> return $ exitFailure program code (if catchStderr
+                                                           then Just stderr
+                                                           else Nothing)
 
 -- | Indicates successful test
 success :: Result
@@ -80,6 +102,10 @@ execNotFoundFailure file =
   testFailed $ "Cannot locate program " ++ file ++ " in the PATH"
 
 -- | Indicates that program failed with an error code
-exitFailure :: String -> Int -> Result
-exitFailure file code =
+exitFailure :: String -> Int -> Maybe String -> Result
+exitFailure file code stderr =
   testFailed $ "Program " ++ file ++ " failed with code " ++ show code
+               ++ case stderr of
+                    Nothing -> ""
+                    Just s  -> "\n Stderr was: \n" ++ s
+
