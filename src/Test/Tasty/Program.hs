@@ -29,6 +29,7 @@ module Test.Tasty.Program (
  , CatchStderr
  ) where
 
+import Control.DeepSeq      ( deepseq                                  )
 import Data.Typeable        ( Typeable                                 )
 import Data.Proxy           ( Proxy (..)                               )
 import System.Directory     ( findExecutable                           )
@@ -83,8 +84,8 @@ runProgram :: String          -- ^ Program name
 runProgram program args workingDir catchStderr = do
   (_, _, stderrH, pid) <- runInteractiveProcess program args workingDir Nothing
 
-  ecode  <- waitForProcess pid
   stderr <- hGetContents stderrH
+  ecode  <- stderr `deepseq` waitForProcess pid
 
   case ecode of
     ExitSuccess      -> return success

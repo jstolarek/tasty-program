@@ -37,6 +37,7 @@ library
                        directory,
                        filepath,
                        process,
+                       deepseq,
                        tasty >= 0.8
   hs-source-dirs:      src
   default-language:    Haskell2010
