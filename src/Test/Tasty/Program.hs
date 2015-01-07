@@ -39,7 +39,7 @@ import System.IO            ( hGetContents                             )
 import Test.Tasty.Providers ( IsTest (..), Result, TestName, TestTree,
                               singleTest, testPassed, testFailed       )
 import Test.Tasty.Options   ( IsOption (..), OptionDescription(..),
-                              safeRead, lookupOption )
+                              safeRead, lookupOption, flagCLParser     )
 
 data TestProgram = TestProgram String [String] (Maybe FilePath)
      deriving (Typeable)
@@ -73,6 +73,7 @@ instance IsOption CatchStderr where
   parseValue   = fmap CatchStderr . safeRead
   optionName   = return "catch-stderr"
   optionHelp   = return "Catch standart error of programs"
+  optionCLParser = flagCLParser (Just 'e') (CatchStderr False)
 
 -- | Run a program with given options and optional working directory.
 -- Return success if program exits with success code.
