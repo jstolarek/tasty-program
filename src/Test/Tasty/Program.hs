@@ -85,14 +85,12 @@ runProgram :: String          -- ^ Program name
 runProgram program args workingDir catchStderr = do
   (_, _, stderrH, pid) <- runInteractiveProcess program args workingDir Nothing
 
-  stderr <- hGetContents stderrH
-  ecode  <- stderr `deepseq` waitForProcess pid
+  stderr <- if catchStderr then fmap Just (hGetContents stderrH) else return Nothing
+  ecode  <- stderr `deepseq` waitForProcess pid
 
   case ecode of
     ExitSuccess      -> return success
-    ExitFailure code -> return $ exitFailure program code (if catchStderr
-                                                           then Just stderr
-                                                           else Nothing)
+    ExitFailure code -> return $ exitFailure program code stderr
 
 -- | Indicates successful test
 success :: Result
