@@ -73,7 +73,7 @@ instance IsOption CatchStderr where
   parseValue   = fmap CatchStderr . safeRead
   optionName   = return "catch-stderr"
   optionHelp   = return "Catch standart error of programs"
-  optionCLParser = flagCLParser (Just 'e') (CatchStderr False)
+  optionCLParser = flagCLParser (Just 'e') (CatchStderr True)
 
 -- | Run a program with given options and optional working directory.
 -- Return success if program exits with success code.
