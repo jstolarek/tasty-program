@@ -1,5 +1,5 @@
 name:                tasty-program
-version:             1.0.1
+version:             1.0.3
 synopsis:            Use tasty framework to test whether a program executes correctly
 description:         This package provides a function that extends
                      <http://hackage.haskell.org/package/tasty tasty> testing
