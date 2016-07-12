@@ -33,7 +33,7 @@ source-repository head
    location: git://github.com/jstolarek/tasty-program.git
 
 library
-  build-depends:       base >=4.6 && <4.9,
+  build-depends:       base >=4.6,
                        directory,
                        filepath,
                        process,
