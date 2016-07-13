@@ -1,5 +1,5 @@
 name:                tasty-program
-version:             1.0.4
+version:             1.0.5
 synopsis:            Use tasty framework to test whether a program executes correctly
 description:         This package provides a function that extends
                      <http://hackage.haskell.org/package/tasty tasty> testing
@@ -33,7 +33,7 @@ source-repository head
    location: git://github.com/jstolarek/tasty-program.git
 
 library
-  build-depends:       base >=4.7,
+  build-depends:       base >=4.7 && <= 5.0,
                        directory,
                        filepath,
                        process,
