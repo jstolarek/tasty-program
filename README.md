@@ -1,6 +1,8 @@
 tasty-program
 =============
 
+**IMPORTANT:** This repository is now [hosted on BitBucket](https://bitbucket.org/jstolarek/tasty-program).
+
 This package provides a function that extends
 [tasty](http://hackage.haskell.org/package/tasty) testing framework
 with capability to test whether an external program runs
